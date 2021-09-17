@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,30 +8,33 @@
     <title>Find deleted views / scenes</title>
     <link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
-       
 
-        <label>App ID</label>
-        <input type="text" id="appId">
 
-        <button id="submitBtn" type="submit">Search</button>
+    <label>App ID</label>
+    <input type="text" id="appId">
 
-        <h2>Missing Views / Scenes</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Found in:</th>
-                    <th>Missing Views</th> 
-                    <th>Missing Scenes</th> 
-                </tr>
-            </thead>
+    <button id="submitBtn" type="submit">Search</button>
 
-            <tbody id="tableBody">
+    <h1>Missing Views / Scenes</h1>
+    <h4>This tool displays the views and scenes that are being referenced in the JavaScript code that no longer exist</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Found in:</th>
+                <th>Missing Views</th>
+                <th>Missing Scenes</th>
+            </tr>
+        </thead>
 
-            </tbody>
-        </table>
-        <div id="loading"></div>
-    
-        <script src="./init.js"></script>
+        <tbody id="tableBody">
+
+        </tbody>
+    </table>
+    <div id="loading"></div>
+
+    <script src="./init.js"></script>
 </body>
+
 </html>

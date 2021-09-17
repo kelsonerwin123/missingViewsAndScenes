@@ -62,6 +62,9 @@ const findBadScenesAndViews = (usedScenesAndViews, allExistingScenesAndViews) =>
         }
     })
 
+    if(!badViews.length) badViews = ["None"]
+    if(!badScenes.length) badScenes = ["None"]
+
     return {badViews, badScenes};
 }
 
@@ -80,19 +83,29 @@ const handleInnerScripts = async (jsCode, knackData) => {
     const urlRegex = /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$].js|.js\?branch=.+?(?='))/igm
 
     const urls = jsCode.match(urlRegex)
+
     console.log('urls %o', urls);
+    if(!urls || !urls.length) return [];
 
 
     let missing = [];
     //console.log(a);
     for (url of urls){
         try {
-            await fetch (url)
-            .then (data => data.text ().then (js => {
-                missing.push(findUnused(knackData, js , url));
-            }));
+            const res = await fetch (url);
+            if(!res.ok) {
+                missing.push({[url] : {
+                    badScenes: ["unable to resolve url"],
+                    badViews: ["unable to resolve url"],
+                }});
+                continue;
+            }
+            const js = await res.text()
+            missing.push(findUnused(knackData, js , url));
+
         } catch (error) {
-            
+            console.error('errpr in missing!')
+            //missing.push("Couldn't get script!")
         }
       
     }
@@ -100,11 +113,17 @@ const handleInnerScripts = async (jsCode, knackData) => {
     return missing;
 
 }
+document.getElementById("appId").value = "5e16043735e3ac00159292e0"
 
 const init = async(appId) =>{
     let url = `https://api.knack.com/v1/applications/${appId}`;
     const knackData= await getKnackDt(url);
     //console.log(knackData);
+
+    if(!knackData.javascript){
+        alert("No JavaScript Code Detected!")
+        return false;
+    } 
     const knackJavascript = decodeAndParse(knackData.javascript)
 
     const unused = [];
@@ -125,6 +144,8 @@ const init = async(appId) =>{
 document.getElementById("submitBtn").addEventListener('click', async function(){
     document.getElementById('loading').style.display = "block";
     const results = await init(document.getElementById("appId").value)
+
+    if(!results) return;
 
     document.getElementById('loading').style.display = "none";
 
