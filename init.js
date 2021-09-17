@@ -2,13 +2,17 @@ const getKnackDt = async(url)=>{
     try {
         const response = await fetch(url);
         const json = await response.json();
+        console.log(json)
         return {
             javascript: json.application.settings.javascript,
             allData: json,
-            scenes: json.application.scenes
+            scenes: json.application.scenes,
+            appName: json.application.name
         };
     } catch (error) {
+        alert("Could not get Knack data. Check your APP ID")
         console.error(error);
+        return false;
     }
 }
 
@@ -84,12 +88,10 @@ const handleInnerScripts = async (jsCode, knackData) => {
 
     const urls = jsCode.match(urlRegex)
 
-    console.log('urls %o', urls);
     if(!urls || !urls.length) return [];
 
 
     let missing = [];
-    //console.log(a);
     for (url of urls){
         try {
             const res = await fetch (url);
@@ -113,43 +115,50 @@ const handleInnerScripts = async (jsCode, knackData) => {
     return missing;
 
 }
-document.getElementById("appId").value = "5e16043735e3ac00159292e0"
+//document.getElementById("appId").value = "5e16043735e3ac00159292e0"
 
 const init = async(appId) =>{
-    let url = `https://api.knack.com/v1/applications/${appId}`;
-    const knackData= await getKnackDt(url);
-    //console.log(knackData);
-
-    if(!knackData.javascript){
-        alert("No JavaScript Code Detected!")
-        return false;
-    } 
-    const knackJavascript = decodeAndParse(knackData.javascript)
-
-    const unused = [];
-
-    //handle main script
-    unused.push(findUnused(knackData, knackData.javascript, "Knack JS code module"))
+    try {
+        let url = `https://api.knack.com/v1/applications/${appId}`;
+        const knackData= await getKnackDt(url);
+        if(!knackData) return;
     
-    //handle inner scripts
-    const innerScriptsResults = await handleInnerScripts(knackJavascript, knackData);
-
-    unused.push(...innerScriptsResults);
-
-    return unused;
+        if(!knackData.javascript){
+            alert("No JavaScript Code Detected!")
+            return false;
+        }
+    
+        document.getElementById("project").innerHTML = `Code Report: ${knackData.appName}`;
+    
+        const knackJavascript = decodeAndParse(knackData.javascript)
+    
+        const unused = [];
+    
+        //handle main script
+        unused.push(findUnused(knackData, knackData.javascript, "Knack JS code module"))
+        
+        //handle inner scripts
+        const innerScriptsResults = await handleInnerScripts(knackJavascript, knackData);
+    
+        unused.push(...innerScriptsResults);
+    
+        return unused;
+    } catch (error) {
+        alert(JSON.stringify(error));
+    }
+   
     
 };
 
 //handle html
 document.getElementById("submitBtn").addEventListener('click', async function(){
     document.getElementById('loading').style.display = "block";
+    document.getElementById("tableBody").innerHTML = ""
     const results = await init(document.getElementById("appId").value)
-
-    if(!results) return;
 
     document.getElementById('loading').style.display = "none";
 
-    console.log('got results %o', results);
+    if(!results) return;
 
     let tbl = '';
     results.forEach(record=>{
@@ -169,5 +178,4 @@ document.getElementById("submitBtn").addEventListener('click', async function(){
 
     document.getElementById("tableBody").innerHTML = tbl;
 
-    console.log(tbl);
 })
