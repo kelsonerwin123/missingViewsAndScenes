@@ -119,23 +119,23 @@ const handleInnerScripts = async (jsCode, knackData) => {
 
 const init = async(appId) =>{
     try {
-        let url = `https://api.knack.com/v1/applications/${appId}`;
+        let url = `https://appcdn.cloud-database.co/${appId}/custom/main.js`;
         const knackData= await getKnackDt(url);
         if(!knackData) return;
     
-        if(!knackData.javascript){
+        if(!knackData){
             alert("No JavaScript Code Detected!")
             return false;
         }
     
         document.getElementById("project").innerHTML = `Code Report: ${knackData.appName}`;
     
-        const knackJavascript = decodeAndParse(knackData.javascript)
+        const knackJavascript = decodeAndParse(knackData)
     
         const unused = [];
     
         //handle main script
-        unused.push(findUnused(knackData, knackData.javascript, "Knack JS code module"))
+        unused.push(findUnused(knackData, knackData, "Knack JS code module"))
         
         //handle inner scripts
         const innerScriptsResults = await handleInnerScripts(knackJavascript, knackData);
