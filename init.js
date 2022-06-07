@@ -1,13 +1,19 @@
 const getKnackDt = async(url)=>{
     try {
-        const response = await fetch(url);
-        const json = await response.json();
-        console.log(json)
+        const knackSchemaUrl = `https://app.knack.com/v1/applications/626ba24a606ed9552d91cf76`;
+        const schema = await fetch(knackSchemaUrl)
+        const schemaJson = await schema.json();
+        console.log(schemaJson)
+        const projectRoute = 'knack-projects/icertify_copy';
+        const response = await fetch(`https://mtj8tgz7jl.execute-api.us-east-1.amazonaws.com/prod/knack-projects/icertify_copy/dist%2Fmain.js?branch=master`);
+
+        const codeText = await response.text();
+        console.log(codeText)
         return {
-            javascript: json.application.settings.javascript,
-            allData: json,
-            scenes: json.application.scenes,
-            appName: json.application.name
+            javascript: codeText,
+            allData: schemaJson,
+            scenes: schemaJson.application.scenes,
+            appName: schemaJson.application.name
         };
     } catch (error) {
         alert("Could not get Knack data. Check your APP ID")
@@ -35,11 +41,12 @@ const decodeAndParse = (encodedData) =>{
 }
 
 const findUsedScenesAndViews = (javascriptCode) =>{
+    console.log('javascriptCode',javascriptCode)
     const viewRegex = /view_\d+/gi;
     const sceneRegex = /scene_\d+/gi;
 
-    const allViews = javascriptCode.match(viewRegex);
-    const allScenes = javascriptCode.match(sceneRegex);
+    const allViews = javascriptCode.javascript.match(viewRegex);
+    const allScenes = javascriptCode.javascript.match(sceneRegex);
 
     const viewsSet = new Set(allViews);
     const sceneSet = new Set(allScenes);
@@ -118,9 +125,10 @@ const handleInnerScripts = async (jsCode, knackData) => {
 //document.getElementById("appId").value = "5e16043735e3ac00159292e0"
 
 const init = async(appId) =>{
-    try {
+
         let url = `https://appcdn.cloud-database.co/${appId}/custom/main.js`;
         const knackData= await getKnackDt(url);
+    
         if(!knackData) return;
     
         if(!knackData){
@@ -143,9 +151,7 @@ const init = async(appId) =>{
         unused.push(...innerScriptsResults);
     
         return unused;
-    } catch (error) {
-        alert(JSON.stringify(error));
-    }
+    
    
     
 };
